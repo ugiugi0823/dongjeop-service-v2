@@ -7,7 +7,8 @@ const API_BASE_URL = isGitHubPages ? '' : '/api';
 // 정적 데이터 로드 함수
 const loadStaticData = async () => {
   try {
-    const response = await fetch('/gt.jsonl');
+    const url = isGitHubPages ? '/dongjeop-service-v2/gt.jsonl' : '/gt.jsonl';
+    const response = await fetch(url);
     const text = await response.text();
     return text.split('\n').filter(line => line.trim()).map(line => JSON.parse(line));
   } catch (error) {

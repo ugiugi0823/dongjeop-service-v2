@@ -67,15 +67,6 @@ function BatchAnalysis() {
     }, 200);
   };
 
-  const getBatchStatus = (batchName) => {
-    // 배치 상태 확인 (실제로는 서버에서 확인)
-    return 'pending'; // pending, analyzing, completed
-  };
-
-  const getBatchImageCount = (batchName) => {
-    // 실제로는 서버에서 이미지 개수 조회
-    return Math.floor(Math.random() * 20) + 5; // 시뮬레이션
-  };
 
   if (loading && !selectedBatch) {
     return (
@@ -112,18 +103,18 @@ function BatchAnalysis() {
           <div className="batch-grid">
             {batches.map((batch) => (
               <div
-                key={batch}
-                className={`batch-card ${selectedBatch === batch ? 'selected' : ''}`}
-                onClick={() => navigate(`/batch/${batch}`)}
+                key={batch.name}
+                className={`batch-card ${selectedBatch === batch.name ? 'selected' : ''}`}
+                onClick={() => navigate(`/batch/${batch.name}`)}
               >
                 <div className="batch-icon">📦</div>
                 <div className="batch-info">
-                  <div className="batch-name">{batch}</div>
+                  <div className="batch-name">{batch.name}</div>
                   <div className="batch-details">
-                    <span className="image-count">{getBatchImageCount(batch)}개 이미지</span>
-                    <span className={`batch-status status-${getBatchStatus(batch)}`}>
-                      {getBatchStatus(batch) === 'pending' ? '대기' : 
-                       getBatchStatus(batch) === 'analyzing' ? '분석중' : '완료'}
+                    <span className="image-count">{batch.image_count}개 이미지</span>
+                    <span className={`batch-status status-${batch.status}`}>
+                      {batch.status === 'pending' ? '대기' : 
+                       batch.status === 'analyzing' ? '분석중' : '완료'}
                     </span>
                   </div>
                 </div>
@@ -140,7 +131,7 @@ function BatchAnalysis() {
               className="batch-card"
               onClick={() => navigate('/gallery')}
             >
-              <img className="batch-icon" src="/img/batch_img.png" alt="batch" />
+              <img className="batch-icon" src="/dongjeop-service-v2/batch_img.png" alt="batch" />
               <div className="batch-info">
                 <div className="batch-name">이미지 갤러리로 이동</div>
                 <div className="batch-details">
