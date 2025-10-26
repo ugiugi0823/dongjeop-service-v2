@@ -10,7 +10,7 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/dongjeop-service-v2">
       <div className="app">
         <Sidebar />
         <div className="main-content">
