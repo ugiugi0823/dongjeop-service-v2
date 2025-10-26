@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import './Gallery.css';
 
+// GitHub Pages 감지
+const isGitHubPages = window.location.hostname === 'ugiugi0823.github.io';
+
 function BatchGallery() {
   const { batchName } = useParams();
   const [images, setImages] = useState([]);
@@ -63,10 +66,10 @@ function BatchGallery() {
           <div key={idx} className="gallery-item">
             <div className="gallery-image">
               <img
-                src={`/spider-images/${batchName}/${image}`}
+                src={isGitHubPages ? `/dongjeop-service-v2/images/${image}` : `/spider-images/${batchName}/${image}`}
                 alt={image}
                 onError={(e) => {
-                  e.target.src = '/img/batch_img.png';
+                  e.target.src = '/dongjeop-service-v2/batch_img.png';
                 }}
               />
             </div>

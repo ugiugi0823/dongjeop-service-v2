@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import './BatchAnalysis.css';
 
+// GitHub Pages 감지
+const isGitHubPages = window.location.hostname === 'ugiugi0823.github.io';
+
 function BatchAnalysis() {
   const navigate = useNavigate();
   const [batches, setBatches] = useState([]);
@@ -178,10 +181,10 @@ function BatchAnalysis() {
                 <div key={index} className="image-card">
                   <div className="image-preview">
                     <img
-                      src={`/spider-images/${selectedBatch}/${image}`}
+                      src={isGitHubPages ? `/dongjeop-service-v2/images/${image}` : `/spider-images/${selectedBatch}/${image}`}
                       alt={image}
                       onError={(e) => {
-                        e.target.src = '/img/batch_img.png';
+                        e.target.src = '/dongjeop-service-v2/batch_img.png';
                       }}
                     />
                   </div>
