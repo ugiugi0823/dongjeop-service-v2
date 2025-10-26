@@ -1,0 +1,100 @@
+/* 깔끔한 하얀색 차트 */
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card:hover {
+  transform: translateY(-2px);
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* Recharts 커스텀 스타일 */
+.chart-card .recharts-legend-wrapper {
+  color: #6c757d !important;
+}
+
+.chart-card .recharts-tooltip-label,
+.chart-card .recharts-tooltip-item-name,
+.chart-card .recharts-tooltip-item-value {
+  color: #333 !important;
+}
+
+.chart-card .recharts-cartesian-axis-tick-value {
+  fill: #6c757d !important;
+}
+
+.chart-card .recharts-cartesian-axis-line {
+  stroke: #dee2e6 !important;
+}
+
+.chart-card .recharts-cartesian-grid-horizontal line,
+.chart-card .recharts-cartesian-grid-vertical line {
+  stroke: #f1f3f4 !important;
+}
+
+.chart-card .recharts-tooltip-wrapper {
+  background: white !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.chart-card .recharts-default-tooltip {
+  background: transparent !important;
+  border: none !important;
+  color: #333 !important;
+}
+
+.charts-container .loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: #6c757d;
+}
+
+.charts-container .loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-card {
+    padding: 16px;
+  }
+}
