@@ -31,6 +31,7 @@ function Dashboard() {
         width_class: { wide: 56, normal: 30, narrow: 15, not_passable: 6 },
         chair_types: { movable: 93, high_movable: 8, fixed: 4, floor: 2 },
         grade_distribution: { S: 0, A: 0, B: 0, C: 0, D: 0 },
+        average_score: 76.8,
         percentages: { step_free: 79.4 }
       });
     } finally {
