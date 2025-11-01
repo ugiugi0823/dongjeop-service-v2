@@ -40,9 +40,14 @@ function StatCards({ statistics }) {
       <div className="stat-card">
         <div className="stat-icon">📊</div>
         <div className="stat-content">
-          <div className="stat-label">Wide 통로</div>
-          <div className="stat-value">{statistics.width_class?.wide || 0}장</div>
-          <div className="stat-percent">({statistics.width_class?.wide ? ((statistics.width_class.wide / statistics.total_images) * 100).toFixed(1) : 0}%)</div>
+          <div className="stat-label">평균 점수</div>
+          <div className="stat-value">{statistics.average_score || 0}점</div>
+          <div className="stat-percent">
+            {statistics.average_score >= 90 ? 'S등급' : 
+             statistics.average_score >= 80 ? 'A등급' : 
+             statistics.average_score >= 70 ? 'B등급' : 
+             statistics.average_score >= 60 ? 'C등급' : 'D등급'}
+          </div>
         </div>
       </div>
 

@@ -24,6 +24,7 @@ const calculateStatistics = (data) => {
   const widthClass = { wide: 0, normal: 0, narrow: 0, not_passable: 0 };
   const chairTypes = { movable: 0, high_movable: 0, fixed: 0, floor: 0 };
   const gradeDistribution = { S: 0, A: 0, B: 0, C: 0, D: 0 };
+  let totalScore = 0;
 
   data.forEach(item => {
     // 단차 통계
@@ -47,10 +48,13 @@ const calculateStatistics = (data) => {
       if (item.chair.has_floor_chair) chairTypes.floor++;
     }
 
-    // 등급 분포 (간단한 계산)
+    // 등급 분포 및 평균 점수 계산
     const score = calculateAccessibilityScore(item);
     gradeDistribution[score.grade]++;
+    totalScore += score.score;
   });
+
+  const averageScore = total > 0 ? (totalScore / total).toFixed(1) : 0;
 
   return {
     total_images: total,
@@ -58,6 +62,7 @@ const calculateStatistics = (data) => {
     width_class: widthClass,
     chair_types: chairTypes,
     grade_distribution: gradeDistribution,
+    average_score: averageScore,
     percentages: {
       step_free: total > 0 ? ((hasStep.false / total) * 100).toFixed(1) : 0
     }

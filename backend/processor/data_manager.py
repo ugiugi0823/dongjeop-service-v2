@@ -55,7 +55,10 @@ class DataManager:
                 "total_images": 0,
                 "has_step": {"true": 0, "false": 0},
                 "width_class": {},
-                "chair_types": {}
+                "chair_types": {},
+                "grade_distribution": {"S": 0, "A": 0, "B": 0, "C": 0, "D": 0},
+                "average_score": 0.0,
+                "percentages": {"step_free": 0}
             }
         
         # 단차 통계
@@ -86,6 +89,17 @@ class DataManager:
             if chair.get('has_floor_chair'):
                 chair_stats['floor'] += 1
         
+        # 등급 분포 및 평균 점수 계산
+        grade_distribution = {"S": 0, "A": 0, "B": 0, "C": 0, "D": 0}
+        total_score = 0
+        
+        for item in data:
+            score_result = self.calculate_accessibility_score(item)
+            grade_distribution[score_result['grade']] += 1
+            total_score += score_result['score']
+        
+        average_score = round(total_score / len(data), 1) if data else 0.0
+        
         return {
             "total_images": len(data),
             "has_step": {
@@ -93,7 +107,12 @@ class DataManager:
                 "false": len(data) - has_step_count
             },
             "width_class": width_counts,
-            "chair_types": chair_stats
+            "chair_types": chair_stats,
+            "grade_distribution": grade_distribution,
+            "average_score": average_score,
+            "percentages": {
+                "step_free": round((len(data) - has_step_count) / len(data) * 100, 1) if data else 0
+            }
         }
     
     def get_images(

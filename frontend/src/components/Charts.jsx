@@ -96,41 +96,41 @@ function Charts({ statistics }) {
           </ResponsiveContainer>
         </div>
 
-        {/* 의자 타입 분포 파이 차트 */}
+        {/* 의자 타입 분포 막대 차트 */}
         <div className="chart-card">
           <h3 className="chart-title">의자 타입 분포</h3>
           <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chairData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value, name) => [value, '개']} />
+              <Bar dataKey="value" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 접근성 등급 분포 파이 차트 */}
+        <div className="chart-card">
+          <h3 className="chart-title">접근성 등급 분포</h3>
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={chairData}
+                data={gradeData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ grade, percentage }) => `${grade} ${percentage}%`}
                 outerRadius={80}
                 fill="#8884d8"
-                dataKey="value"
+                dataKey="count"
               >
-                {chairData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS.chair[index % COLORS.chair.length]} />
+                {gradeData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS.grade[index % COLORS.grade.length]} />
                 ))}
               </Pie>
               <Tooltip />
             </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* 접근성 등급 분포 바 차트 */}
-        <div className="chart-card">
-          <h3 className="chart-title">접근성 등급 분포</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={gradeData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="grade" />
-              <YAxis />
-              <Tooltip formatter={(value, name) => [value, '개']} />
-              <Bar dataKey="count" fill="#8884d8" />
-            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
