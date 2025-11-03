@@ -398,9 +398,32 @@ function ReviewQueue() {
       {selectedItems.size > 0 && (
         <div className="bulk-action-bar">
           <div className="bulk-info">
+            <input
+              type="checkbox"
+              checked={selectedItems.size === reviewItems.length && reviewItems.length > 0}
+              onChange={handleSelectAll}
+              style={{ marginRight: '8px' }}
+            />
             <span>{selectedItems.size}개 항목 선택됨</span>
           </div>
           <div className="bulk-actions">
+            <button
+              onClick={handleSelectAll}
+              className="btn-bulk-select-all"
+              style={{
+                marginRight: '8px',
+                padding: '8px 16px',
+                background: '#f3f4f6',
+                color: '#374151',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              전체 선택
+            </button>
             <button
               onClick={handleHumanReview}
               className="btn-bulk-complete"
