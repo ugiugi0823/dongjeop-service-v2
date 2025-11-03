@@ -15,14 +15,21 @@ function Gallery() {
     has_step: '',
     width_class: '',
     chair_type: '',
-    needs_relabeling: ''
+    needs_relabeling: '',
+    score: '' // 신뢰도 점수 필터 추가
   });
 
   const itemsPerPage = 12;
 
   useEffect(() => {
-    loadGallery();
-  }, [currentPage, filters]);
+    // 초기 로드 시에만 자동 실행
+    const hasFilters = Object.values(filters).some(v => v !== '');
+    if (!hasFilters && currentPage === 0) {
+      loadGallery();
+    }
+  }, []); // 초기 마운트 시에만 실행
+  
+  // 페이지네이션은 loadGallery를 직접 호출하므로 useEffect 불필요
 
   const loadGallery = async () => {
     try {
@@ -44,6 +51,9 @@ function Gallery() {
       if (filters.needs_relabeling !== '') {
         params.needs_relabeling = filters.needs_relabeling === 'true';
       }
+      if (filters.score !== '') {
+        params.min_score = parseInt(filters.score);
+      }
 
       const data = await api.getImages(params);
       setImages(data.items);
@@ -57,20 +67,66 @@ function Gallery() {
 
   const handleFilterChange = (filterName, value) => {
     setFilters(prev => ({ ...prev, [filterName]: value }));
-    setCurrentPage(0); // 필터 변경 시 첫 페이지로
+    // 필터 변경 시 첫 페이지로 이동하지만 자동 조회는 하지 않음
+    // "조회하기" 버튼 클릭 시 조회
+  };
+  
+  const handleQuery = () => {
+    setCurrentPage(0);
+    loadGallery();
   };
 
   const totalPages = Math.ceil(totalImages / itemsPerPage);
 
   const handlePrevPage = () => {
     if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      // 페이지 변경 시 현재 필터로 조회
+      loadGalleryWithPage(newPage);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      // 페이지 변경 시 현재 필터로 조회
+      loadGalleryWithPage(newPage);
+    }
+  };
+  
+  const loadGalleryWithPage = async (page) => {
+    try {
+      setLoading(true);
+      const params = {
+        skip: page * itemsPerPage,
+        limit: itemsPerPage
+      };
+
+      if (filters.has_step !== '') {
+        params.has_step = filters.has_step === 'true';
+      }
+      if (filters.width_class !== '') {
+        params.width_class = filters.width_class;
+      }
+      if (filters.chair_type !== '') {
+        params.chair_type = filters.chair_type;
+      }
+      if (filters.needs_relabeling !== '') {
+        params.needs_relabeling = filters.needs_relabeling === 'true';
+      }
+      if (filters.score !== '') {
+        params.min_score = parseInt(filters.score);
+      }
+
+      const data = await api.getImages(params);
+      setImages(data.items);
+      setTotalImages(data.total);
+    } catch (error) {
+      console.error('갤러리 로드 실패:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,7 +157,7 @@ function Gallery() {
     <div className="gallery-page">
       <div className="gallery-header">
         <div className="header-content">
-          <h1>🖼️ 이미지 갤러리</h1>
+          <h1>🖼️ 실내사진목록</h1>
           <p className="header-subtitle">
             매장 이미지를 필터링하여 검색하고 상세 정보를 확인하세요
           </p>
@@ -119,68 +175,138 @@ function Gallery() {
       </div>
 
       <div className="gallery-filters">
-        <div className="filter-group">
-          <label className="filter-label">단차 필터</label>
-          <select
-            value={filters.has_step}
-            onChange={(e) => handleFilterChange('has_step', e.target.value)}
-            className="filter-select"
-          >
-            <option value="">전체</option>
-            <option value="false">단차 없음</option>
-            <option value="true">단차 있음</option>
-          </select>
+        <div className="filter-section">
+          <label className="filter-label">신뢰도</label>
+          <div className="filter-button-group">
+            <button
+              className={`filter-button ${filters.score === '90' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('score', filters.score === '90' ? '' : '90')}
+            >
+              90점 이상
+            </button>
+            <button
+              className={`filter-button ${filters.score === '75' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('score', filters.score === '75' ? '' : '75')}
+            >
+              75점 이상
+            </button>
+            <button
+              className={`filter-button ${filters.score === '50' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('score', filters.score === '50' ? '' : '50')}
+            >
+              50점 이상
+            </button>
+            <button
+              className={`filter-button ${filters.score === '25' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('score', filters.score === '25' ? '' : '25')}
+            >
+              25점 미만
+            </button>
+          </div>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-label">통로 필터</label>
-          <select
-            value={filters.width_class}
-            onChange={(e) => handleFilterChange('width_class', e.target.value)}
-            className="filter-select"
-          >
-            <option value="">전체</option>
-            <option value="wide">Wide (넓음)</option>
-            <option value="normal">Normal (보통)</option>
-            <option value="narrow">Narrow (좁음)</option>
-            <option value="not_passable">통과 불가</option>
-          </select>
+        <div className="filter-section">
+          <label className="filter-label">계단/턱</label>
+          <div className="filter-button-group">
+            <button
+              className={`filter-button ${filters.has_step === '' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('has_step', '')}
+            >
+              전체
+            </button>
+            <button
+              className={`filter-button ${filters.has_step === 'true' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('has_step', filters.has_step === 'true' ? '' : 'true')}
+            >
+              있음
+            </button>
+            <button
+              className={`filter-button ${filters.has_step === 'false' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('has_step', filters.has_step === 'false' ? '' : 'false')}
+            >
+              없음
+            </button>
+          </div>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-label">의자 필터</label>
-          <select
-            value={filters.chair_type}
-            onChange={(e) => handleFilterChange('chair_type', e.target.value)}
-            className="filter-select"
-          >
-            <option value="">전체</option>
-            <option value="movable">이동형 의자</option>
-            <option value="high_movable">높이조절 의자</option>
-            <option value="fixed">고정형 의자</option>
-            <option value="floor">바닥좌식</option>
-          </select>
+        <div className="filter-section">
+          <label className="filter-label">의자유형</label>
+          <div className="filter-button-group">
+            <button
+              className={`filter-button ${filters.chair_type === '' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('chair_type', '')}
+            >
+              전체
+            </button>
+            <button
+              className={`filter-button ${filters.chair_type === 'movable' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('chair_type', filters.chair_type === 'movable' ? '' : 'movable')}
+            >
+              낮은 이동형
+            </button>
+            <button
+              className={`filter-button ${filters.chair_type === 'high_movable' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('chair_type', filters.chair_type === 'high_movable' ? '' : 'high_movable')}
+            >
+              높은 이동형
+            </button>
+            <button
+              className={`filter-button ${filters.chair_type === 'fixed' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('chair_type', filters.chair_type === 'fixed' ? '' : 'fixed')}
+            >
+              고정형
+            </button>
+            <button
+              className={`filter-button ${filters.chair_type === 'floor' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('chair_type', filters.chair_type === 'floor' ? '' : 'floor')}
+            >
+              좌식형
+            </button>
+          </div>
         </div>
 
-        <div className="filter-group">
-          <label className="filter-label">레이블링 상태</label>
-          <select
-            value={filters.needs_relabeling}
-            onChange={(e) => handleFilterChange('needs_relabeling', e.target.value)}
-            className="filter-select"
-          >
-            <option value="">전체</option>
-            <option value="false">정상</option>
-            <option value="true">레이블링 필요</option>
-          </select>
+        <div className="filter-section">
+          <label className="filter-label">통로</label>
+          <div className="filter-button-group">
+            <button
+              className={`filter-button ${filters.width_class === '' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('width_class', '')}
+            >
+              전체
+            </button>
+            <button
+              className={`filter-button ${filters.width_class === 'wide' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('width_class', filters.width_class === 'wide' ? '' : 'wide')}
+            >
+              넓음
+            </button>
+            <button
+              className={`filter-button ${filters.width_class === 'normal' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('width_class', filters.width_class === 'normal' ? '' : 'normal')}
+            >
+              보통
+            </button>
+            <button
+              className={`filter-button ${filters.width_class === 'narrow' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('width_class', filters.width_class === 'narrow' ? '' : 'narrow')}
+            >
+              좁음
+            </button>
+            <button
+              className={`filter-button ${filters.width_class === 'not_passable' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('width_class', filters.width_class === 'not_passable' ? '' : 'not_passable')}
+            >
+              통과 불가
+            </button>
+          </div>
         </div>
 
         <div className="filter-actions">
           <button
-            onClick={() => setFilters({ has_step: '', width_class: '', chair_type: '', needs_relabeling: '' })}
-            className="btn-clear"
+            onClick={handleQuery}
+            className="btn-query"
           >
-            필터 초기화
+            조회하기
           </button>
         </div>
       </div>
@@ -224,12 +350,6 @@ function Gallery() {
                     <div>의자: {getChairTypes(item.chair)}</div>
                   </div>
 
-                  <div className="gallery-item-score">
-                    <span>{item.accessibility.score}점</span>
-                    <span className={`score-badge ${getGradeClassName(item.accessibility.grade)}`}>
-                      {item.accessibility.grade}
-                    </span>
-                  </div>
                 </div>
               ))
             )}

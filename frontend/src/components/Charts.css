@@ -1,86 +1,101 @@
-/* 깔끔한 하얀색 차트 */
+/* 현대적인 차트 디자인 */
+
 .charts-container {
+  width: 100%;
+}
+
+.charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  animation: fadeInUp 0.8s ease-out both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chart-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #dee2e6;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
 }
 
 .chart-card:hover {
-  transform: translateY(-2px);
-  border-color: #007bff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 40px rgba(102, 126, 234, 0.15),
+    0 0 0 1px rgba(102, 126, 234, 0.1);
+}
+
+.chart-card:hover::before {
+  transform: scaleX(1);
 }
 
 .chart-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
-/* Recharts 커스텀 스타일 */
-.chart-card .recharts-legend-wrapper {
-  color: #6c757d !important;
+.chart-title::before {
+  content: '';
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 2px;
 }
 
-.chart-card .recharts-tooltip-label,
-.chart-card .recharts-tooltip-item-name,
-.chart-card .recharts-tooltip-item-value {
-  color: #333 !important;
-}
-
-.chart-card .recharts-cartesian-axis-tick-value {
-  fill: #6c757d !important;
-}
-
-.chart-card .recharts-cartesian-axis-line {
-  stroke: #dee2e6 !important;
-}
-
-.chart-card .recharts-cartesian-grid-horizontal line,
-.chart-card .recharts-cartesian-grid-vertical line {
-  stroke: #f1f3f4 !important;
-}
-
-.chart-card .recharts-tooltip-wrapper {
-  background: white !important;
-  border: 1px solid #dee2e6 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-.chart-card .recharts-default-tooltip {
-  background: transparent !important;
-  border: none !important;
-  color: #333 !important;
-}
-
-.charts-container .loading {
+/* 로딩 상태 */
+.loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
-  color: #6c757d;
+  padding: 60px 20px;
+  color: #6b7280;
 }
 
-.charts-container .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #007bff;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
@@ -89,12 +104,41 @@
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
-  .charts-container {
-    grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
   }
   
   .chart-card {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .chart-card {
+    padding: 20px;
+  }
+  
+  .chart-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-card {
     padding: 16px;
+  }
+  
+  .chart-title {
+    font-size: 1.1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }

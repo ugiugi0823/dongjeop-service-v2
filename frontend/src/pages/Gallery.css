@@ -53,8 +53,8 @@
 
 .gallery-filters {
   display: flex;
-  gap: 20px;
-  align-items: end;
+  gap: 32px;
+  align-items: flex-start;
   margin-bottom: 32px;
   padding: 24px;
   background: white;
@@ -63,55 +63,75 @@
   flex-wrap: wrap;
 }
 
-.filter-group {
+.filter-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 150px;
+  gap: 12px;
 }
 
 .filter-label {
   font-size: 14px;
   font-weight: 600;
   color: #374151;
+  margin-bottom: 4px;
 }
 
-.filter-select {
-  padding: 10px 12px;
+.filter-button-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-button {
+  padding: 8px 16px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: white;
-  font-size: 14px;
   color: #374151;
-  transition: border-color 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.filter-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.filter-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.filter-button.active {
+  background: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+
+.filter-button.active:hover {
+  background: #334155;
+  border-color: #334155;
 }
 
 .filter-actions {
   display: flex;
-  align-items: end;
+  align-items: flex-end;
+  margin-left: auto;
 }
 
-.btn-clear {
-  padding: 10px 16px;
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+.btn-query {
+  padding: 10px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.btn-clear:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+.btn-query:hover {
+  background: #2563eb;
 }
 
 .gallery-loading {

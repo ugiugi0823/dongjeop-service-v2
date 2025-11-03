@@ -12,16 +12,22 @@ function Sidebar() {
       description: '전체 통계 및 분석'
     },
     {
-      path: '/location-dashboard',
-      icon: '🗺️',
-      label: '위치 기반 대시보드',
-      description: '서울 지역별 분석 현황'
+      path: '/photo-collection',
+      icon: '📸',
+      label: '사진수집현황',
+      description: '수집된 사진 목록'
     },
     {
-      path: '/batch-analysis',
-      icon: '🔬',
-      label: '배치 단위 분석',
-      description: 'Spider → GT 분석 워크플로우'
+      path: '/review/queue',
+      icon: '📋',
+      label: '검수대상목록',
+      description: 'AI 분석 재검토 필요'
+    },
+    {
+      path: '/review/completed',
+      icon: '✅',
+      label: '검수완료목록',
+      description: '검수 완료된 이미지'
     }
   ];
 

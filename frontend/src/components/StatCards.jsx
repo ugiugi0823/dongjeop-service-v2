@@ -37,19 +37,6 @@ function StatCards({ statistics }) {
         </div>
       </div>
 
-      <div className="stat-card">
-        <div className="stat-icon">📊</div>
-        <div className="stat-content">
-          <div className="stat-label">평균 점수</div>
-          <div className="stat-value">{statistics.average_score || 0}점</div>
-          <div className="stat-percent">
-            {statistics.average_score >= 90 ? 'S등급' : 
-             statistics.average_score >= 80 ? 'A등급' : 
-             statistics.average_score >= 70 ? 'B등급' : 
-             statistics.average_score >= 60 ? 'C등급' : 'D등급'}
-          </div>
-        </div>
-      </div>
 
       <div className="stat-card">
         <div className="stat-icon">⭐</div>

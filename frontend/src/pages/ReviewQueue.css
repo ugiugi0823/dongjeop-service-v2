@@ -1,0 +1,85 @@
+/* 검수 대기 목록 페이지 스타일 */
+/* Gallery.css의 스타일을 주로 사용하고, 여기서는 추가 스타일만 정의 */
+
+.review-queue-page {
+  /* Gallery.css의 gallery-page 스타일 사용 */
+}
+
+.review-checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.review-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.priority-indicator {
+  display: inline-block;
+}
+
+.bulk-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.bulk-info {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-bulk-complete {
+  padding: 8px 16px;
+  background: white;
+  color: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-bulk-complete:hover {
+  background: #f3f4f6;
+}
+
+.btn-bulk-cancel {
+  padding: 8px 16px;
+  background: transparent;
+  color: white;
+  border: 1px solid white;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-bulk-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 갤러리 아이템 헤더 스타일 조정 */
+.gallery-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}

@@ -1,13 +1,17 @@
 """
 FastAPI 메인 애플리케이션
 """
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 import glob
+import json
+import base64
+from openai import OpenAI
 
 from backend.utils.config import settings
 from backend.utils.logger import setup_logger
@@ -43,6 +47,32 @@ if img_gt_path.exists():
 spider_path = settings.BASE_DIR / "data" / "spider"
 if spider_path.exists():
     app.mount("/spider-images", StaticFiles(directory=str(spider_path)), name="spider-images")
+
+# 데이터 폴더 서빙 (검수완료목록, 검수대상목록 등)
+data_path = settings.BASE_DIR / "data"
+if data_path.exists():
+    app.mount("/data", StaticFiles(directory=str(data_path)), name="data")
+
+# review_queue_images.json 파일 서빙
+review_queue_json_path = settings.BASE_DIR / "frontend" / "public" / "review_queue_images.json"
+if review_queue_json_path.exists():
+    @app.get("/review_queue_images.json")
+    async def get_review_queue_images():
+        return FileResponse(str(review_queue_json_path))
+
+# photo_collection_images.json 파일 서빙
+photo_collection_json_path = settings.BASE_DIR / "frontend" / "public" / "photo_collection_images.json"
+if photo_collection_json_path.exists():
+    @app.get("/photo_collection_images.json")
+    async def get_photo_collection_images():
+        return FileResponse(str(photo_collection_json_path))
+
+# gt.jsonl 파일 서빙
+gt_jsonl_path = settings.BASE_DIR / "frontend" / "public" / "gt.jsonl"
+if gt_jsonl_path.exists():
+    @app.get("/gt.jsonl")
+    async def get_gt_jsonl():
+        return FileResponse(str(gt_jsonl_path), media_type="application/jsonl")
 
 # 정적 파일 서빙 (프론트엔드)
 frontend_path = settings.BASE_DIR / "frontend" / "dist"
@@ -284,6 +314,212 @@ async def start_batch_analysis(batch_name: str):
             status_code=500,
             content={"error": str(e)}
         )
+
+
+class AnalyzeImagesRequest(BaseModel):
+    image_paths: List[str]
+
+
+def load_openai_api_key() -> str:
+    """OpenAI API 키 로드"""
+    api_key_file = settings.BASE_DIR / "api.txt"
+    if not api_key_file.exists():
+        raise FileNotFoundError("API 키 파일을 찾을 수 없습니다: api.txt")
+    
+    with open(api_key_file, 'r') as f:
+        api_key = f.read().strip()
+    
+    if not api_key:
+        raise ValueError("API 키가 비어있습니다")
+    
+    return api_key
+
+
+def encode_image(image_path: Path) -> str:
+    """이미지를 base64로 인코딩"""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+
+def analyze_image_with_gpt(client: OpenAI, image_path: Path, batch_name: str) -> dict:
+    """GPT Vision API를 사용하여 이미지 분석"""
+    
+    # 이미지 base64 인코딩
+    base64_image = encode_image(image_path)
+    
+    # 프롬프트 작성
+    prompt = """이 이미지는 음식점의 실내 공간 사진입니다. 이동약자 접근성 관점에서 다음 항목들을 분석해주세요:
+
+1. **단차/계단/턱 (has_step)**: 
+   - 휠체어 사용자가 진입하기 어려운 단차, 계단, 문턱이 있는지 확인
+   - boolean 값으로 반환 (true: 있음, false: 없음)
+
+2. **통로 너비 (width_class)**:
+   - wide: 휠체어가 여유롭게 통과 가능 (약 90cm 이상)
+   - normal: 휠체어가 통과 가능하나 좁음 (약 70-90cm)
+   - narrow: 휠체어 통과가 매우 어려움 (약 50-70cm)
+   - not_passable: 휠체어 통과 불가능 (50cm 미만)
+   - 배열로 반환 (여러 구간이 있으면 모두 포함)
+
+3. **의자 타입 (chair)**:
+   - has_movable_chair: 일반적인 이동 가능한 의자 (의자, 스툴 등)
+   - has_high_movable_chair: 팔걸이가 있거나 높이 조절 가능한 의자
+   - has_fixed_chair: 고정된 의자 (벤치, 부스 좌석 등)
+   - has_floor_chair: 바닥 좌석 (좌식 테이블)
+   - 각각 boolean 값으로 반환
+
+응답은 반드시 다음 JSON 형식으로만 제공해주세요:
+{
+  "has_step": boolean,
+  "width_class": ["wide" 또는 "normal" 또는 "narrow" 또는 "not_passable"],
+  "chair": {
+    "has_movable_chair": boolean,
+    "has_high_movable_chair": boolean,
+    "has_fixed_chair": boolean,
+    "has_floor_chair": boolean
+  },
+  "confidence": float (0.0-1.0, 전체 예측의 신뢰도)
+}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/webp;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=500,
+            temperature=0.1
+        )
+        
+        # 응답에서 JSON 추출
+        content = response.choices[0].message.content.strip()
+        
+        # JSON 파싱 (마크다운 코드 블록 제거)
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+        
+        result = json.loads(content)
+        
+        # file_path 추가
+        result["file_path"] = f"{batch_name}/{image_path.name}"
+        result["batch"] = batch_name
+        
+        # confidence가 없으면 기본값 설정
+        if "confidence" not in result:
+            result["confidence"] = 0.85
+        
+        return result
+        
+    except json.JSONDecodeError as e:
+        logger.warning(f"JSON 파싱 오류 ({image_path.name}): {e}")
+        # 기본값 반환
+        return {
+            "file_path": f"{batch_name}/{image_path.name}",
+            "batch": batch_name,
+            "has_step": False,
+            "width_class": ["normal"],
+            "chair": {
+                "has_movable_chair": True,
+                "has_high_movable_chair": False,
+                "has_fixed_chair": False,
+                "has_floor_chair": False
+            },
+            "confidence": 0.5
+        }
+    except Exception as e:
+        logger.error(f"API 호출 오류 ({image_path.name}): {e}")
+        raise
+
+
+@app.post("/api/analyze/images")
+async def analyze_images(request: AnalyzeImagesRequest):
+    """선택된 이미지들을 GPT Vision API로 분석"""
+    try:
+        # API 키 로드
+        api_key = load_openai_api_key()
+        client = OpenAI(api_key=api_key)
+        
+        # 사진수집현황 경로
+        photo_collection_path = settings.BASE_DIR / "data" / "사진수집현황"
+        output_file = settings.BASE_DIR / "data" / "사진수집현황" / "gpt_analysis_results.jsonl"
+        
+        results = []
+        errors = []
+        
+        for image_path_str in request.image_paths:
+            try:
+                # 이미지 경로 파싱 (예: "batch_00/image.webp")
+                parts = image_path_str.split('/')
+                if len(parts) != 2:
+                    errors.append({
+                        "file_path": image_path_str,
+                        "error": "잘못된 파일 경로 형식"
+                    })
+                    continue
+                
+                batch_name = parts[0]
+                image_filename = parts[1]
+                
+                # 실제 이미지 파일 경로
+                image_file_path = photo_collection_path / batch_name / image_filename
+                
+                if not image_file_path.exists():
+                    errors.append({
+                        "file_path": image_path_str,
+                        "error": "파일을 찾을 수 없습니다"
+                    })
+                    continue
+                
+                # GPT Vision API로 분석
+                result = analyze_image_with_gpt(client, image_file_path, batch_name)
+                results.append(result)
+                
+            except Exception as e:
+                logger.error(f"이미지 분석 실패 ({image_path_str}): {e}")
+                errors.append({
+                    "file_path": image_path_str,
+                    "error": str(e)
+                })
+        
+        # 결과를 JSONL 파일에 저장 (append 모드)
+        if results:
+            with open(output_file, 'a', encoding='utf-8') as f:
+                for result in results:
+                    f.write(json.dumps(result, ensure_ascii=False) + '\n')
+        
+        return {
+            "success": len(results),
+            "errors": len(errors),
+            "results": results,
+            "error_details": errors,
+            "message": f"{len(results)}개 이미지 분석 완료, {len(errors)}개 실패"
+        }
+        
+    except FileNotFoundError as e:
+        logger.error(f"API 키 파일을 찾을 수 없습니다: {e}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"이미지 분석 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

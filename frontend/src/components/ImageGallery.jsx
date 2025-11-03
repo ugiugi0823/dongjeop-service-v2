@@ -162,7 +162,7 @@ function ImageGallery() {
                     />
                   </div>
                   
-                  <div className="gallery-item-header">{item.file_path}</div>
+                  <div className="gallery-item-header">{item.file_path.replace(/batch_/g, 'folder_')}</div>
                   
                   <div className="gallery-item-info">
                     <div>단차: {item.has_step ? '있음 ❌' : '없음 ✅'}</div>
@@ -170,12 +170,6 @@ function ImageGallery() {
                     <div>의자: {getChairTypes(item.chair)}</div>
                   </div>
 
-                  <div className="gallery-item-score">
-                    <span>{item.accessibility.score}점</span>
-                    <span className={`score-badge ${getGradeClassName(item.accessibility.grade)}`}>
-                      {item.accessibility.grade}
-                    </span>
-                  </div>
                 </div>
               ))
             )}

@@ -13,13 +13,79 @@ function ImageModal({ image, onClose }) {
   const loadDetail = async () => {
     try {
       setLoading(true);
+      
+      // 이미 전달받은 이미지 데이터에 상세 정보가 있으면 바로 사용
+      if (image.has_step !== undefined || image.review_result || image.width_class) {
+        // 검수완료목록 또는 검수대상목록 데이터인 경우
+        let detailData = { ...image };
+        
+        // 검수 완료 데이터인 경우
+        if (image.review_result) {
+          detailData.has_step = image.review_result.has_step;
+          detailData.width_class = image.review_result.width_class;
+          detailData.chair = image.review_result.chair;
+          detailData.accessibility = {
+            score: image.review_result.score,
+            grade: image.review_result.grade
+          };
+        } else {
+          // 검수 대기 데이터이거나 기본 데이터인 경우
+          // 접근성 점수 계산
+          if (!detailData.accessibility) {
+            const score = calculateAccessibilityScore(detailData);
+            detailData.accessibility = score;
+          }
+        }
+        
+        setDetail(detailData);
+        setLoading(false);
+        return;
+      }
+      
+      // 기존 방식: API에서 상세 정보 가져오기
       const data = await api.getImageDetail(image.file_path);
-      setDetail(data);
+      if (data) {
+        setDetail(data);
+      } else {
+        // API에서 찾지 못한 경우 전달받은 데이터 사용
+        const score = calculateAccessibilityScore(image);
+        setDetail({
+          ...image,
+          accessibility: score
+        });
+      }
     } catch (error) {
       console.error('상세 정보 로드 실패:', error);
+      // 에러 발생 시 전달받은 이미지 데이터라도 표시
+      if (image) {
+        const score = calculateAccessibilityScore(image);
+        setDetail({
+          ...image,
+          accessibility: score
+        });
+      }
     } finally {
       setLoading(false);
     }
+  };
+  
+  // 접근성 점수 계산 함수
+  const calculateAccessibilityScore = (item) => {
+    let score = 100;
+    
+    if (item.has_step) score -= 30;
+    
+    if (item.width_class) {
+      if (item.width_class.includes('not_passable')) score -= 40;
+      else if (item.width_class.includes('narrow')) score -= 20;
+      else if (item.width_class.includes('normal')) score -= 10;
+    }
+    
+    if (item.chair && !item.chair.has_movable_chair) score -= 10;
+    
+    const grade = score >= 90 ? 'S' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : 'D';
+    
+    return { score, grade };
   };
 
   const getWidthText = (widthClasses) => {
@@ -60,7 +126,7 @@ function ImageModal({ image, onClose }) {
         ) : detail ? (
           <div className="modal-body">
             <div className="modal-image-section">
-              <h3>{detail.file_path}</h3>
+              <h3>{detail.file_path?.replace(/batch_/g, 'folder_') || '이미지 정보 없음'}</h3>
               <div className="modal-image">
                 <img
                   src={getImageUrl(detail.file_path)}
@@ -75,30 +141,65 @@ function ImageModal({ image, onClose }) {
             <div className="modal-info-section">
               <h3>접근성 정보</h3>
               
-              <div className="info-item">
-                <span className="info-label">단차:</span>
-                <span className={`info-value ${detail.has_step ? 'text-danger' : 'text-success'}`}>
-                  {detail.has_step ? '있음 ❌' : '없음 ✅'}
-                </span>
-              </div>
+              {detail.has_step !== undefined ? (
+                <>
+                  <div className="info-item">
+                    <span className="info-label">단차:</span>
+                    <span className={`info-value ${detail.has_step ? 'text-danger' : 'text-success'}`}>
+                      {detail.has_step ? '있음 ❌' : '없음 ✅'}
+                    </span>
+                  </div>
 
-              <div className="info-item">
-                <span className="info-label">통로 너비:</span>
-                <span className="info-value">{getWidthText(detail.width_class)}</span>
-              </div>
+                  <div className="info-item">
+                    <span className="info-label">통로 너비:</span>
+                    <span className="info-value">
+                      {detail.width_class && detail.width_class.length > 0 
+                        ? getWidthText(detail.width_class) 
+                        : '분석 안됨'}
+                    </span>
+                  </div>
 
-              <div className="info-item">
-                <span className="info-label">의자 타입:</span>
-                <span className="info-value">{getChairTypes(detail.chair)}</span>
-              </div>
+                  <div className="info-item">
+                    <span className="info-label">의자 타입:</span>
+                    <span className="info-value">
+                      {detail.chair ? getChairTypes(detail.chair) : '분석 안됨'}
+                    </span>
+                  </div>
 
-              <div className="score-box">
-                <div className="score-label">접근성 점수</div>
-                <div className="score-value">{detail.accessibility.score}점</div>
-                <div className="score-grade">{detail.accessibility.grade} 등급</div>
-              </div>
+                </>
+              ) : (
+                <>
+                  {detail.review_status && (
+                    <div className="info-item">
+                      <span className="info-label">검수 상태:</span>
+                      <span className="info-value">{detail.review_status === 'pending' ? '검수 대기' : '검수 완료'}</span>
+                    </div>
+                  )}
+                  {detail.review_priority && (
+                    <div className="info-item">
+                      <span className="info-label">우선순위:</span>
+                      <span className="info-value">
+                        {detail.review_priority === 'high' ? '높음' : 
+                         detail.review_priority === 'medium' ? '보통' : '낮음'}
+                      </span>
+                    </div>
+                  )}
+                  {detail.review_reason && (
+                    <div className="info-item">
+                      <span className="info-label">검수 사유:</span>
+                      <span className="info-value">{detail.review_reason}</span>
+                    </div>
+                  )}
+                  {detail.batch && (
+                    <div className="info-item">
+                      <span className="info-label">배치:</span>
+                      <span className="info-value">{detail.batch}</span>
+                    </div>
+                  )}
+                </>
+              )}
 
-              {detail.recommendations && detail.recommendations.length > 0 ? (
+              {detail.recommendations && detail.recommendations.length > 0 && (
                 <div className="recommendations">
                   <h4>💡 개선 사항</h4>
                   {detail.recommendations.map((rec, index) => (
@@ -107,10 +208,6 @@ function ImageModal({ image, onClose }) {
                       <div className="recommendation-desc">{rec.description}</div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                <div className="recommendations">
-                  <p className="excellent-message">✅ 접근성이 우수합니다!</p>
                 </div>
               )}
             </div>

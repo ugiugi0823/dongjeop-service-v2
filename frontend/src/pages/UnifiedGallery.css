@@ -1,0 +1,97 @@
+.unified-gallery-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f8fafc;
+}
+
+.unified-tabs {
+  display: flex;
+  gap: 0;
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 0 32px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.unified-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.unified-tab:hover {
+  color: #3b82f6;
+  background: #f8fafc;
+}
+
+.unified-tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background: #f8fafc;
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+.tab-label {
+  font-weight: 500;
+}
+
+.unified-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background: #f8fafc;
+}
+
+.tab-content-wrapper {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* 각 페이지의 최상위 padding 유지하되, 탭과 겹치지 않도록 조정 */
+.tab-content-wrapper .gallery-page,
+.tab-content-wrapper .review-queue-page,
+.tab-content-wrapper .reviewed-list-page,
+.tab-content-wrapper .photo-collection-page {
+  padding-top: 32px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .unified-tabs {
+    padding: 0 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .unified-tab {
+    padding: 12px 16px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  
+  .tab-label {
+    display: none;
+  }
+  
+  .tab-icon {
+    font-size: 20px;
+  }
+}
+
