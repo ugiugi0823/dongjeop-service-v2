@@ -19,11 +19,21 @@
     <meta property="twitter:title" content="접근성 분석 대시보드" />
     <meta property="twitter:description" content="실내 이미지의 접근성 정보를 종합적으로 분석합니다" />
     <meta property="twitter:image" content="https://ugiugi0823.github.io/dongjeop-service-v2/img/og_img.png" />
-    <script type="module" crossorigin src="/dongjeop-service-v2/assets/index-N4oH60ua.js"></script>
-    <link rel="stylesheet" crossorigin href="/dongjeop-service-v2/assets/index-D8VFXBFc.css">
+    
+    <script type="text/javascript">
+      // GitHub Pages에서 SPA 라우팅을 위한 404.html 처리
+      // 현재 경로를 유지하면서 index.html로 리다이렉트
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      var path = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash;
+      l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + path);
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/dongjeop-service-v2/src/main.jsx"></script>
   </body>
 </html>
-
