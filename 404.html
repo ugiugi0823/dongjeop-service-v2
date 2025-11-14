@@ -22,21 +22,23 @@
     
     <script type="text/javascript">
       // GitHub Pages에서 SPA 라우팅을 위한 404.html 처리
-      // /dongjeop-service-v2 하위 경로를 유지하면서 index.html로 리다이렉트
       (function () {
         var l = window.location;
-        var basePath = '/dongjeop-service-v2';
-        var pathWithoutBase = l.pathname.startsWith(basePath)
-          ? l.pathname.slice(basePath.length)
-          : l.pathname;
-        pathWithoutBase = pathWithoutBase.replace(/^\/+/, '');
-        var search = l.search ? l.search.slice(1).replace(/&/g, '~and~') : '';
-        var redirectPath = basePath + '/?/' + pathWithoutBase.replace(/&/g, '~and~');
-        if (search) {
-          redirectPath += '&' + search;
+        var repoPath = '/dongjeop-service-v2';
+        var origin = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '');
+        var path = l.pathname || '';
+        if (!path.startsWith(repoPath)) {
+          return;
         }
-        redirectPath += l.hash;
-        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
+        var remainder = path.slice(repoPath.length).replace(/^\/+/, '');
+        var encodedPath = remainder.replace(/&/g, '~and~');
+        var encodedSearch = l.search ? l.search.slice(1).replace(/&/g, '~and~') : '';
+        var redirectUrl = repoPath + '/?/' + encodedPath;
+        if (encodedSearch) {
+          redirectUrl += '&' + encodedSearch;
+        }
+        redirectUrl += l.hash || '';
+        l.replace(origin + redirectUrl);
       })();
     </script>
   </head>
