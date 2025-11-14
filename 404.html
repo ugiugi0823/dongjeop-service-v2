@@ -22,14 +22,22 @@
     
     <script type="text/javascript">
       // GitHub Pages에서 SPA 라우팅을 위한 404.html 처리
-      // 현재 경로를 유지하면서 index.html로 리다이렉트
-      var pathSegmentsToKeep = 1;
-      var l = window.location;
-      var path = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash;
-      l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + path);
+      // /dongjeop-service-v2 하위 경로를 유지하면서 index.html로 리다이렉트
+      (function () {
+        var l = window.location;
+        var basePath = '/dongjeop-service-v2';
+        var pathWithoutBase = l.pathname.startsWith(basePath)
+          ? l.pathname.slice(basePath.length)
+          : l.pathname;
+        pathWithoutBase = pathWithoutBase.replace(/^\/+/, '');
+        var search = l.search ? l.search.slice(1).replace(/&/g, '~and~') : '';
+        var redirectPath = basePath + '/?/' + pathWithoutBase.replace(/&/g, '~and~');
+        if (search) {
+          redirectPath += '&' + search;
+        }
+        redirectPath += l.hash;
+        l.replace(l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') + redirectPath);
+      })();
     </script>
   </head>
   <body>
